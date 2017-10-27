@@ -35,6 +35,8 @@ const listJsFiles = [
   _srcdir + 'js/main_es5.js'
 ]
 
+// dummy edit
+
 // CSS task
 gulp.task('css', function () {
   const dest = _srcdir + '/dist/'
