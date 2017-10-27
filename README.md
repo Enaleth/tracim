@@ -78,6 +78,8 @@ The user interface is based on the following resources and technologies:
 * Icons are taken from [Tango Icons](http://tango.freedesktop.org/) and [Font Awesome](http://fortawesome.github.io/Font-Awesome/)
 * The design is based on the [Bootstrap dashboard example](http://getbootstrap.com/examples/dashboard/) and uses some images from [Start Boostrap free templates](http://startbootstrap.com/)
 
+
+
 It runs on [Debian GNU/Linux](http://www.debian.org/), it should work out-of-the-box on [Ubuntu](http://www.ubuntu.com/) and also on other GNU/Linux distributions.
 
 Hopefully it works on BSD and Windows OSes (but this has not been tested yet).
@@ -201,6 +203,159 @@ If admin user not created yet, execute following command:
 
     gearbox user create -l admin@admin.admin -p admin@admin.admin -g managers -g administrators
 
+    PG # CONNECT TO DATABASE
+    ------------------------
+    server:     127.0.0.1
+    database:   tracimdb
+    username:   bibi
+
+    psql: FATAL:  password authentication failed for user "bibi"
+    FATAL:  password authentication failed for user "bibi"
+    ERRROR
+
+In this case, delete the user and database you previously created (using pgtool) and do it again. Do not forget to run the grant_all_rights command!
+
+## Configuration ##
+
+At this point, you have :
+
+* an installation of Tracim with its dedicated python3-ready virtualenv
+* a PostgreSQL server and dedicated database
+
+What you have to do now is to configure the application and to initialize the database content.
+
+### Create configuration ###
+
+    cp tracim/development.ini.base tracim/development.ini
+
+You can now edit the file and setup required files. Here are the main ones:
+
+#### Database access ####
+
+Configure database in the development.ini file. This is defined as sqlalchemy.url
+and the default value is below:
+
+    sqlalchemy.url = postgresql://tracimuser:tracimpassword@127.0.0.1:5432/tracimdb?client_encoding=utf8
+
+#### Listening port
+
+Default configuration is to listen on port 8080. If you want to adapt this to your environment, edit the .ini file and setup the port you want:
+
+    port = 8080
+
+#### Interface language
+
+The default language is English. You can change it to French by uncommenting the following line in the .ini file:
+
+    lang = fr
+
+#### SMTP parameters for resetpassword and notifications
+
+for some reason, you have to configure SMTP parameters for rest password process and SMTP parameters for notifications in separate places.
+
+The reset password related parameters are the follwoing ones :
+
+    resetpassword.email_sender = tracim@mycompany.com
+    resetpassword.smtp_host = smtp.mycompany.com
+    resetpassword.smtp_port = 25
+    resetpassword.smtp_login = username
+    resetpassword.smtp_passwd = password
+
+The main parameters for notifications are the following ones:
+
+    email.notification.activated = true
+    email.notification.from = Tracim Notification <tracim@tmycompany.com>
+    email.notification.smtp.server = smtp.mycompany.com
+    email.notification.smtp.port = 25
+    email.notification.smtp.user = username
+    email.notification.smtp.password = password
+
+#### Website ####
+
+You must define general parameters like the base_url and the website title which are required for home page and email notification links
+
+    website.title = My Company Intranet
+    website.base_url = http://intranet.mycompany.com:8080
+
+#### LDAP ####
+
+To use LDAP authentication, set ``auth_type`` parameter to "ldap":
+
+    auth_type = ldap
+
+Then add LDAP parameters
+
+    # LDAP server address
+    ldap_url = ldap://localhost:389
+
+    # Base dn to make queries
+    ldap_base_dn = dc=directory,dc=fsf,dc=org
+
+    # Bind dn to identify the search
+    ldap_bind_dn = cn=admin,dc=directory,dc=fsf,dc=org
+
+    # The bind password
+    ldap_bind_pass = toor
+
+    # Attribute name of user record who contain user login (email)
+    ldap_ldap_naming_attribute = uid
+
+    # Matching between ldap attribute and ldap user field (ldap_attr1=user_field1,ldap_attr2=user_field2,...)
+    ldap_user_attributes = mail=email
+
+    # TLS usage to communicate with your LDAP server
+    ldap_tls = False
+
+    # If True, LDAP own tracim group managment (not available for now!)
+    ldap_group_enabled = False
+
+You may need an administrator account to manage Tracim. Use the following command (from ``/install/dir/of/tracim/tracim``):
+
+```
+gearbox user create -l admin-email@domain.com -g managers -g administrators
+```
+
+Keep in mind ``admin-email@domain.com`` must match with LDAP user.
+
+#### Other parameters  ####
+
+There are other parameters which may be of some interest for you. For example, you can:
+
+* include a JS tracker like Piwik or Google Analytics,
+* define your own notification email subject
+* personalize notification email
+* personalize home page (background image, title color...)
+* ...
+
+### database schema ###
+
+The last step before to run the application is to initialize the database schema. This is done through the following command:
+
+    source tg2env/bin/activate
+    cd tracim && gearbox setup-app && cd -
+
+## Running the server ##
+
+### Running Tracim in standalone mode ###
+
+Now you can run the standalone server:
+
+    ./bin/run.sh
+    
+Which should result in something like this:
+
+    13:53:49,982 INFO  [gearbox] Starting subprocess with file monitor
+    13:53:50,646 WARNI [py.warnings] /tmp/tracim/protov1/tg2env/lib/python3.2/site-packages/tw2/core/validation.py:12: ImportWarning: Not importing directory '/tmp/tracim/protov1/tg2env/lib/python3.2/site-packages/tw2/core/i18n': missing __init__.py
+      from .i18n import _
+    
+    13:53:50,862 INFO  [gearbox] Starting server in PID 11174.
+    Starting HTTP server on http://0.0.0.0:8080
+    
+You can now enter the application at [http://localhost:8080](http://localhost:8080) and login:
+
+* user : admin@admin.admin
+* password : admin@admin.admin
+    
 Enjoy :)
 
 # Going further #
