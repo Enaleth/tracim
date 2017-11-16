@@ -117,7 +117,7 @@
                     % endfor
                   ],
                   '${nb_page}',
-                  '/previews/__FILE_ID__/pages/__CURRENT_PAGE__/__DOWNLOAD_TYPE__?revision_id=__REVISION_ID__',
+                  '/workspaces/__WS_ID__/folders/__FOLDER_ID__/files/__FILE_ID__/pages/__CURRENT_PAGE__/__DOWNLOAD_TYPE__?revision_id=__REVISION_ID__',
                   {
                     id: '${result.file.id}',
                     name: '${result.file.file.name}',
