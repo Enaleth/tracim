@@ -25,6 +25,7 @@ from tracim.controllers import StandardController
 from tracim.controllers import TIMRestPathContextSetup
 from tracim.controllers import TIMRestControllerWithBreadcrumb
 from tracim.controllers import TIMWorkspaceContentRestController
+from tracim.controllers.page import PagesController
 from tracim.lib import CST
 from tracim.lib.base import BaseController
 from tracim.lib.base import logger
@@ -164,6 +165,8 @@ class UserWorkspaceFolderFileRestController(TIMWorkspaceContentRestController):
     TEMPLATE_NEW = 'mako:tracim.templates.file.new'
     TEMPLATE_EDIT = 'mako:tracim.templates.file.edit'
 
+    pages = PagesController()
+
     @property
     def _std_url(self):
         return tg.url('/workspaces/{}/folders/{}/files/{}')
@@ -195,6 +198,10 @@ class UserWorkspaceFolderFileRestController(TIMWorkspaceContentRestController):
     @tg.require(current_user_is_reader())
     @tg.expose('tracim.templates.file.getone')
     def get_one(self, file_id, revision_id=None):
+        workspace_id = \
+            int(tg.request.controller_state.routing_args.get('workspace_id'))
+        folder_id = \
+            int(tg.request.controller_state.routing_args.get('folder_id'))
         file_id = int(file_id)
         cache_path = CFG.get_instance().PREVIEW_CACHE_DIR
         preview_manager = PreviewManager(cache_path, create_folder=True)
@@ -226,10 +233,16 @@ class UserWorkspaceFolderFileRestController(TIMWorkspaceContentRestController):
         try:
             nb_page = preview_manager.get_page_nb(file_path=file_path)
             for page in range(int(nb_page)):
-                url_str = '/previews/{}/pages/{}?revision_id={}'
-                url = url_str.format(file_id,
-                                     page,
-                                     revision_id)
+                url_str = \
+                    '/workspaces/{}/folders/{}/files/{}' \
+                    '/pages/{}?revision_id={}'
+                url = url_str.format(
+                    workspace_id,
+                    folder_id,
+                    file_id,
+                    page,
+                    revision_id,
+                )
                 preview_urls.append(url)
 
             enable_pdf_buttons = \
